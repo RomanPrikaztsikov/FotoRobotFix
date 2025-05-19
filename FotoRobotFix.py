@@ -1,87 +1,94 @@
 import customtkinter as ctk
-from tkinter import simpledialog,Canvas
+from tkinter import simpledialog, Canvas
 from PIL import Image, ImageTk
-import pygame
 
-# pygame.mixer.init()
-# pygame.mixer.music.load("music.mp3")
-
-app=ctk.CTk()
+app = ctk.CTk()
 app.geometry("800x500")
-app.title("Nao koostaja nuppudega")
+app.title("Näo koostaja nuppudega")
 
-canvas=Canvas(app, width=400, height=400, bg="black")
-canvas.pack(side="right", padx=10, pady=10)
+lõuend = Canvas(app, width=400, height=400, bg="gray")
+lõuend.pack(side="right", padx=10, pady=10)
 
 pildid = {}
 objektid = {}
-olemas ={}
+indeksid = {}  # stores current index for each part
 
-def toggle_osa(nimi, fail, x, y):
-    if olemas.get(nimi):
-        canvas.delete(objektid[nimi])
-        olemas[nimi]=False
+# Images for each part
+taustad = ["face1.png", "face2.png", "face3.png", "face4.png", "face5.png"]
+silmad_list = ["eyes1.png", "eyes2.png", "eyes3.png"]
+nina_list = ["nose1.png", "nose2.png", "nose3.png"]
+suu_list = ["mouth1.png", "mouth2.png", "mouth3.png"]
+kõrvad_list = ["ears1.png", "ears2.png", "ears3.png"]
+
+# Track background separately
+tausta_indeks = 0
+tausta_id = None
+
+def kuva_taust(indeks):
+    global tausta_indeks, tausta_id
+    tausta_indeks = indeks % len(taustad)
+    pilt = Image.open(taustad[tausta_indeks]).convert("RGBA").resize((400, 400))
+    tk_pilt = ImageTk.PhotoImage(pilt)
+    pildid["taust"] = tk_pilt
+    if tausta_id:
+        lõuend.itemconfig(tausta_id, image=tk_pilt)
     else:
-        pil_img=Image.open(fail).convert("RGBA").resize((400, 400))
-        tk_img = ImageTk.PhotoImage(pil_img)
-        pildid[nimi]=tk_img
-        objektid[nimi]=canvas.create_image(x, y, image=tk_img)
-        olemas[nimi]=True
+        tausta_id = lõuend.create_image(0, 0, image=tk_pilt, anchor="nw")
 
+def järgmine_taust():
+    kuva_taust(tausta_indeks + 1)
 
-# def mängi_muusika():
-#     pygame.mixer.music.play(loops=-1)
+def kuva_osa(nimi, failid):
+    indeks = indeksid.get(nimi, 0) % len(failid)
+    fail = failid[indeks]
+    indeksid[nimi] = (indeks + 1) % len(failid)
 
-# def peata_muusika():
-#     pygame.mixer.music.stop()
+    if objektid.get(nimi):
+        lõuend.delete(objektid[nimi])
+
+    pilt = Image.open(fail).convert("RGBA").resize((400, 400))
+    tk_pilt = ImageTk.PhotoImage(pilt)
+    pildid[nimi] = tk_pilt
+    objektid[nimi] = lõuend.create_image(200, 200, image=tk_pilt)
 
 def salvesta_nagu():
-    failinimi=simpledialog.askstring("Salvesta pilt", "Sisesta faili nimi (ilma laiendita):")
-    if not failinimi:
+    nimi = simpledialog.askstring("Salvesta pilt", "Sisesta faili nimi (ilma laiendita):")
+    if not nimi:
         return
 
-    lõpp_pilt=Image.new("RGBA", (400, 400), (255, 255, 255, 255))
+    pilt = Image.new("RGBA", (400, 400), (255, 255, 255, 255))
+    taust = Image.open(taustad[tausta_indeks]).convert("RGBA").resize((400, 400))
+    pilt.alpha_composite(taust)
 
-    for nimi in ["otsmik", "silmad", "nina", "suu", "korvad"]:
-        if olemas.get(nimi):
-            failitee = {
-                "ostmik": "face1.png",
-                "silmad": "silmad1.png",
-                "nina": "nina1.png",
-                "suu": "mouth1.png",
-                "korvad": "ears1.png"
-                }.get(nimi)
-            if failitee:
-                osa = Image.open(failitee).convert("RGBA").resize((400, 400))
-                lõpp_pilt.alpha_composite(osa)
+    for osa in ["silmad", "nina", "suu", "kõrvad"]:
+        if osa in objektid:
+            aktiivne_indeks = (indeksid.get(osa, 0) - 1) % len(globals()[osa + "_list"])
+            fail = globals()[osa + "_list"][aktiivne_indeks]
+            kiht = Image.open(fail).convert("RGBA").resize((400, 400))
+            pilt.alpha_composite(kiht)
 
+    pilt.save(nimi + ".png")
 
-toggle_osa("nagu", "face3.png", 200, 200)
-olemas["nagu"] = True
-frame=ctk.CTkFrame(app)
-frame.pack(side="left", padx=10, pady=10)
+kuva_taust(0)
 
-seaded ={
-    "width":150, "height":40,
+raam = ctk.CTkFrame(app)
+raam.pack(side="left", padx=10, pady=10)
+
+seaded = {
+    "width": 150, "height": 40,
     "font": ("Segoe UI Emoji", 32),
     "fg_color": "#4CAF50",
     "text_color": "white",
-    "corner_radius": 20 }
+    "corner_radius": 20
+}
 
-ctk.CTkLabel(frame, text="Vali näosad:", **seaded).pack(pady=5)
+ctk.CTkLabel(raam, text="Vali näo osad:", **seaded).pack(pady=5)
 
-ctk.CTkButton(frame, text="Otsmik", command=lambda: toggle_osa("face1.png", "face2.png", 200, 200), **seaded).pack(pady=3)
-ctk.CTkButton(frame, text="Silmad", command=lambda: toggle_osa("eyes1.png", "eyes2.png", 200, 200), **seaded).pack(pady=3)
-ctk.CTkButton(frame, text="Nina", command=lambda: toggle_osa("nose1.png", "nose2.png", 200, 200), **seaded).pack(pady=3)
-ctk.CTkButton(frame, text="Suu", command=lambda: toggle_osa("mouth1.png", "mouth2.png", 200, 200), **seaded).pack(pady=3)
-ctk.CTkButton(frame, text="Korvad", command=lambda: toggle_osa("ears1.png", "ears2.png", 200, 200), **seaded).pack(pady=3)
-nupp=ctk.CTkButton(frame, text="Salvesta nagu", command=salvesta_nagu,**seaded)
-nupp.pack(side="bottom", pady=10)
-
-
-frame_mus=ctk.CTkFrame(frame)
-frame_mus.pack(side="bottom", padx=10, pady=10)
-# ctk.CTkButton(frame_mus, text="Mängi muusika", fg_color="4CAF50", command=mängi_muusika).pack(side="left", pady=10)
-# ctk.CTkButton(frame_mus, text="Peata muusika", fg_color="4CAF50", command=peata_muusika).pack(side="left", pady=10)
+ctk.CTkButton(raam, text="Nägu", command=järgmine_taust, **seaded).pack(pady=3)
+ctk.CTkButton(raam, text="Silmad", command=lambda: kuva_osa("silmad", silmad_list), **seaded).pack(pady=3)
+ctk.CTkButton(raam, text="Nina", command=lambda: kuva_osa("nina", nina_list), **seaded).pack(pady=3)
+ctk.CTkButton(raam, text="Suu", command=lambda: kuva_osa("suu", suu_list), **seaded).pack(pady=3)
+ctk.CTkButton(raam, text="Kõrvad", command=lambda: kuva_osa("kõrvad", kõrvad_list), **seaded).pack(pady=3)
+ctk.CTkButton(raam, text="Salvesta nägu", command=salvesta_nagu, **seaded).pack(pady=10)
 
 app.mainloop()
