@@ -11,16 +11,15 @@ lõuend.pack(side="right", padx=10, pady=10)
 
 pildid = {}
 objektid = {}
-indeksid = {}  # stores current index for each part
+indeksid = {}  
 
-# Images for each part
 taustad = ["face1.png", "face2.png", "face3.png", "face4.png", "face5.png"]
 silmad_list = ["eyes1.png", "eyes2.png", "eyes3.png"]
 nina_list = ["nose1.png", "nose2.png", "nose3.png"]
 suu_list = ["mouth1.png", "mouth2.png", "mouth3.png"]
 kõrvad_list = ["ears1.png", "ears2.png", "ears3.png"]
 
-# Track background separately
+
 tausta_indeks = 0
 tausta_id = None
 
