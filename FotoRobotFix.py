@@ -1,9 +1,10 @@
 import customtkinter as ctk
 from tkinter import simpledialog, Canvas, filedialog
+import random
 from PIL import Image, ImageTk
 
 app = ctk.CTk()
-app.geometry("800x500")
+app.geometry("800x600")
 app.title("Näo koostaja nuppudega")
 
 lõuend = Canvas(app, width=400, height=400, bg="gray")
@@ -11,7 +12,7 @@ lõuend.pack(side="right", padx=10, pady=10)
 
 pildid = {}
 objektid = {}
-indeksid = {}  
+indeksid = {}
 
 taustad = ["face1.png", "face2.png", "face3.png", "face4.png", "face5.png"]
 silmad_list = ["eyes1.png", "eyes2.png", "eyes3.png"]
@@ -73,6 +74,21 @@ def lisa_uus_taust():
         taustad.append(fail)
         kuva_taust(len(taustad)-1)
 
+def randomiseeri():
+    global indeksid
+    tausta_random = random.randint(0, len(taustad) - 1)
+    kuva_taust(tausta_random)
+
+    for osa, failid in [("silmad", silmad_list), ("nina", nina_list), ("suu", suu_list), ("kõrvad", kõrvad_list)]:
+        indeksid[osa] = random.randint(0, len(failid) - 1)
+        if objektid.get(osa):
+            lõuend.delete(objektid[osa])
+        fail = failid[indeksid[osa]]
+        pilt = Image.open(fail).convert("RGBA").resize((400, 400))
+        tk_pilt = ImageTk.PhotoImage(pilt)
+        pildid[osa] = tk_pilt
+        objektid[osa] = lõuend.create_image(200, 200, image=tk_pilt)
+
 kuva_taust(0)
 
 raam = ctk.CTkFrame(app)
@@ -94,6 +110,7 @@ ctk.CTkButton(raam, text="Nina", command=lambda: kuva_osa("nina", nina_list), **
 ctk.CTkButton(raam, text="Suu", command=lambda: kuva_osa("suu", suu_list), **seaded).pack(pady=3)
 ctk.CTkButton(raam, text="Kõrvad", command=lambda: kuva_osa("kõrvad", kõrvad_list), **seaded).pack(pady=3)
 ctk.CTkButton(raam, text="Lisa uus nägu", command=lisa_uus_taust, **seaded).pack(pady=10)
+ctk.CTkButton(raam, text="Juhuslik", command=randomiseeri, **seaded).pack(pady=3)
 ctk.CTkButton(raam, text="Salvesta nägu", command=salvesta_nagu, **seaded).pack(pady=3)
 
 app.mainloop()
