@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from tkinter import simpledialog, Canvas
+from tkinter import simpledialog, Canvas, filedialog
 from PIL import Image, ImageTk
 
 app = ctk.CTk()
@@ -18,7 +18,6 @@ silmad_list = ["eyes1.png", "eyes2.png", "eyes3.png"]
 nina_list = ["nose1.png", "nose2.png", "nose3.png"]
 suu_list = ["mouth1.png", "mouth2.png", "mouth3.png"]
 kõrvad_list = ["ears1.png", "ears2.png", "ears3.png"]
-
 
 tausta_indeks = 0
 tausta_id = None
@@ -68,6 +67,12 @@ def salvesta_nagu():
 
     pilt.save(nimi + ".png")
 
+def lisa_uus_taust():
+    fail = filedialog.askopenfilename(title="Vali uus näo pilt", filetypes=[("PNG pildid", "*.png")])
+    if fail:
+        taustad.append(fail)
+        kuva_taust(len(taustad)-1)
+
 kuva_taust(0)
 
 raam = ctk.CTkFrame(app)
@@ -88,6 +93,7 @@ ctk.CTkButton(raam, text="Silmad", command=lambda: kuva_osa("silmad", silmad_lis
 ctk.CTkButton(raam, text="Nina", command=lambda: kuva_osa("nina", nina_list), **seaded).pack(pady=3)
 ctk.CTkButton(raam, text="Suu", command=lambda: kuva_osa("suu", suu_list), **seaded).pack(pady=3)
 ctk.CTkButton(raam, text="Kõrvad", command=lambda: kuva_osa("kõrvad", kõrvad_list), **seaded).pack(pady=3)
-ctk.CTkButton(raam, text="Salvesta nägu", command=salvesta_nagu, **seaded).pack(pady=10)
+ctk.CTkButton(raam, text="Lisa uus nägu", command=lisa_uus_taust, **seaded).pack(pady=10)
+ctk.CTkButton(raam, text="Salvesta nägu", command=salvesta_nagu, **seaded).pack(pady=3)
 
 app.mainloop()
